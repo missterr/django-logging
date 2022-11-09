@@ -11,11 +11,6 @@ except ImportError:  # pragma: nocover
 
 try:
     import orjson
-except ImportError:  # pragma: nocover
-    orjson = None  # type: ignore
-
-
-class ORJsonSerializer:
 
     options = {
         "LOGGING_OPT_INDENT_2": orjson.OPT_INDENT_2,
@@ -33,13 +28,19 @@ class ORJsonSerializer:
         "LOGGING_OPT_UTC_Z": orjson.OPT_UTC_Z
     }
 
+except (ImportError, AttributeError):  # pragma: nocover
+    orjson = None  # type: ignore
+
+
+class ORJsonSerializer:
+
     @staticmethod
     @lru_cache()
     def dumps() -> Callable:
         option = False
-        for key, val in ORJsonSerializer.options.items():
+        for key, val in options.items():
             if getattr(settings, key):
-                option = option | ORJsonSerializer.options[key]
+                option = option | options[key]
         return partial(orjson.dumps, option=option) if option else orjson.dumps
 
     @classmethod
