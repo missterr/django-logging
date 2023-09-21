@@ -1,6 +1,6 @@
 import json
-from typing import Callable
 from functools import partial, lru_cache
+from typing import Callable
 
 from django_json_logging import settings
 
@@ -11,25 +11,25 @@ except ImportError:  # pragma: nocover
 
 try:
     import orjson
-
-    options = {
-        "LOGGING_OPT_INDENT_2": orjson.OPT_INDENT_2,
-        "LOGGING_OPT_NON_STR_KEYS": orjson.OPT_NON_STR_KEYS,
-        "LOGGING_OPT_APPEND_NEWLINE": orjson.OPT_APPEND_NEWLINE,
-        "LOGGING_OPT_NAIVE_UTC": orjson.OPT_NAIVE_UTC,
-        "LOGGING_OPT_OMIT_MICROSECONDS": orjson.OPT_OMIT_MICROSECONDS,
-        "LOGGING_OPT_PASSTHROUGH_DATACLASS": orjson.OPT_PASSTHROUGH_DATACLASS,
-        "LOGGING_OPT_PASSTHROUGH_DATETIME": orjson.OPT_PASSTHROUGH_DATETIME,
-        "LOGGING_OPT_SERIALIZE_DATACLASS": orjson.OPT_SERIALIZE_DATACLASS,
-        "LOGGING_OPT_SERIALIZE_NUMPY": orjson.OPT_SERIALIZE_NUMPY,
-        "LOGGING_OPT_SERIALIZE_UUID": orjson.OPT_SERIALIZE_UUID,
-        "LOGGING_OPT_SORT_KEYS": orjson.OPT_SORT_KEYS,
-        "LOGGING_OPT_STRICT_INTEGER": orjson.OPT_STRICT_INTEGER,
-        "LOGGING_OPT_UTC_Z": orjson.OPT_UTC_Z
-    }
-
 except (ImportError, AttributeError):  # pragma: nocover
     orjson = None  # type: ignore
+
+
+options = {
+    "LOGGING_OPT_INDENT_2": "OPT_INDENT_2",
+    "LOGGING_OPT_NON_STR_KEYS": "OPT_NON_STR_KEYS",
+    "LOGGING_OPT_APPEND_NEWLINE": "OPT_APPEND_NEWLINE",
+    "LOGGING_OPT_NAIVE_UTC": "OPT_NAIVE_UTC",
+    "LOGGING_OPT_OMIT_MICROSECONDS": "OPT_OMIT_MICROSECONDS",
+    "LOGGING_OPT_PASSTHROUGH_DATACLASS": "OPT_PASSTHROUGH_DATACLASS",
+    "LOGGING_OPT_PASSTHROUGH_DATETIME": "OPT_PASSTHROUGH_DATETIME",
+    "LOGGING_OPT_SERIALIZE_DATACLASS": "OPT_SERIALIZE_DATACLASS",
+    "LOGGING_OPT_SERIALIZE_NUMPY": "OPT_SERIALIZE_NUMPY",
+    "LOGGING_OPT_SERIALIZE_UUID": "OPT_SERIALIZE_UUID",
+    "LOGGING_OPT_SORT_KEYS": "OPT_SORT_KEYS",
+    "LOGGING_OPT_STRICT_INTEGER": "OPT_STRICT_INTEGER",
+    "LOGGING_OPT_UTC_Z": "OPT_UTC_Z"
+}
 
 
 class ORJsonSerializer:
@@ -38,9 +38,9 @@ class ORJsonSerializer:
     @lru_cache()
     def dumps() -> Callable:
         option = False
-        for key, val in options.items():
+        for key, opt in options.items():
             if getattr(settings, key):
-                option = option | options[key]
+                option = option | getattr(orjson, opt)
         return partial(orjson.dumps, option=option) if option else orjson.dumps
 
     @classmethod
@@ -64,10 +64,9 @@ class UJsonSerializer:
         assert ujson is not None, 'ujson must be installed to use UJsonSerializer'
 
         if settings.DEVELOP:
-            json = ujson.dumps(dict_record, ensure_ascii=False, indent=2)
+            return ujson.dumps(dict_record, ensure_ascii=False, indent=2)
         else:
-            json = ujson.dumps(dict_record, ensure_ascii=False)
-        return str(json, settings.LOGGING_ENCODING)
+            return ujson.dumps(dict_record, ensure_ascii=False)
 
 
 class JsonSerializer:
